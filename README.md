@@ -1,5 +1,3 @@
-<img width="1268" height="386" alt="image" src="https://github.com/user-attachments/assets/0ed1cb84-ac4f-4650-bcfa-1a2622e44517" /><div align="center">
-
 # `digi-alrm-clk`
 ### A Synthesizable Digital Alarm Clock in Verilog HDL
 
@@ -14,7 +12,7 @@
 
 ## Abstract
 
-This repository implements a **register-transfer-level digital alarm clock** in Verilog, carried end-to-end through RTL design, functional simulation, gate-level synthesis (Cadence Genus), and physical layout (Cadence Innovus). The design keeps time with cascaded second/minute/hour counters, exposes a synchronous reset for setting the clock, and drives an `alarm_flag` output when the current time matches a user-programmed alarm time, with a manual `shutdown` override. The full flow — from HDL to a DRC-clean layout — is documented below with waveform and layout evidence pulled directly from the project's verification runs.
+This repository implements a **register-transfer-level digital alarm clock** in Verilog, from RTL design through functional simulation, gate-level synthesis (Cadence Genus), and physical layout (Cadence Innovus). The design uses cascaded second/minute/hour counters, exposes a synchronous reset to set the clock, and drives an `alarm_flag` output when the current time matches a user-programmed alarm time, with a manual `shutdown` override. The full flow — from HDL to a DRC-clean layout — is documented below with waveform and layout evidence pulled directly from the project's verification runs.
 
 ---
 
@@ -95,7 +93,7 @@ $$
 
 The alarm is a level-sensitive comparator latched by an internal `alarm_active` state bit, so it fires exactly once per match rather than re-triggering every cycle the time equality holds:
 
-$$
+```math
 \text{alarm\_flag}_{t+1} =
 \begin{cases}
 0, & \text{shutdown} \wedge \text{alarm\_active}_t \\
@@ -103,7 +101,7 @@ $$
 0, & (h_t \ne h_{\text{alarm}}) \vee (m_t \ne m_{\text{alarm}}) \\
 \text{alarm\_flag}_t, & \text{otherwise}
 \end{cases}
-$$
+```
 
 
 ## 4. Architecture
@@ -120,12 +118,12 @@ This partition kept each concern independently testable before integration, foll
 
 Verification used the testbench in `tb_alarm_clk.v` against Cadence SimVision, covering reset, two independent alarm events, a mid-alarm shutdown, and automatic alarm timeout.
 
-### 5.1 Reset behavior
+### 5.1 Reset behaviour
 
 Reset immediately forces the display to the programmed `reset_hour` / `reset_minute` with seconds cleared, independent of prior state.
 
 <p align="center">
-  <img src="assets/reset_waveform.png" width="850" alt="Reset timing diagram: reset_hour/reset_minute load into hr_counter/min_counter with sec_counter cleared"/>
+  <img src="assets/1.jpg" width="850" alt="Reset timing diagram: reset_hour/reset_minute load into hr_counter/min_counter with sec_counter cleared"/>
   <br/><sub><b>Fig. 1</b> — Reset loads the clock to <code>hour = 1</code>, <code>minute = 20</code>, <code>second = 0</code>.</sub>
 </p>
 
@@ -134,12 +132,12 @@ Reset immediately forces the display to the programmed `reset_hour` / `reset_min
 Alarm 1 was programmed for **02:00**. `alarm_flag` rises on match and stays high until the `shutdown` pulse arrives at second 30, at which point it is cleared immediately — well short of the nominal 60-second window — demonstrating that `shutdown` pre-empts the timeout.
 
 <p align="center">
-  <img src="assets/alarm_trigger.png" width="850" alt="alarm_flag rising as hour/minute match the programmed alarm time"/>
+  <img src="assets/2.jpg" width="850" alt="alarm_flag rising as hour/minute match the programmed alarm time"/>
   <br/><sub><b>Fig. 2</b> — <code>alarm_flag</code> asserted the instant <code>{hour, minute}</code> matches <code>{alarm_hour, alarm_minute}</code>.</sub>
 </p>
 
 <p align="center">
-  <img src="assets/shutdown_trigger.png" width="850" alt="shutdown pulse clearing alarm_flag mid-alarm"/>
+  <img src="assets/3.jpg" width="850" alt="shutdown pulse clearing alarm_flag mid-alarm"/>
   <br/><sub><b>Fig. 3</b> — A <code>shutdown</code> pulse clears <code>alarm_flag</code> and <code>alarm_active</code> on demand.</sub>
 </p>
 
@@ -148,7 +146,7 @@ Alarm 1 was programmed for **02:00**. `alarm_flag` rises on match and stays high
 Alarm 2, programmed for **03:15** with no shutdown applied, confirms the complementary path: the flag self-clears once the minute counter advances past the match, with no manual intervention needed.
 
 <p align="center">
-  <img src="assets/alarm_315.png" width="850" alt="Second alarm triggering and auto-clearing at 03:15/03:16"/>
+  <img src="assets/4.jpg" width="850" alt="Second alarm triggering and auto-clearing at 03:15/03:16"/>
   <br/><sub><b>Fig. 4</b> — Alarm 2 fires at <code>03:15</code> and deactivates automatically once the minute rolls to <code>03:16</code>.</sub>
 </p>
 
@@ -168,7 +166,7 @@ All transitions were glitch-free across resets, back-to-back alarms, and shutdow
 Beyond RTL simulation, the design went through **Genus** RTL synthesis (generic mapping to a slow/fast standard-cell library) and **Innovus** place-and-route, producing a DRC-clean, fully routed layout with no orphan nets or inferred latches.
 
 <p align="center">
-  <img src="assets/layout_design.png" width="600" alt="Innovus physical layout of the alarm clock counters and register bank"/>
+  <img src="assets/12.jpg" width="600" alt="Innovus physical layout of the alarm clock counters and register bank"/>
   <br/><sub><b>Fig. 5</b> — Placed-and-routed layout (Cadence Innovus): power rails (<code>VDD</code>/<code>VSS</code>) and the second/minute/hour counter register banks.</sub>
 </p>
 
